@@ -1,0 +1,265 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_NAME_LEN 50
+#define MAX_DATE_LEN 20
+
+struct Patient {
+    int id;
+    char name[MAX_NAME_LEN];
+    int age;
+    char gender[10];
+    struct Patient *next;
+};
+
+struct Doctor {
+    int id;
+    char name[MAX_NAME_LEN];
+    char specialization[30];
+    struct Doctor *next;
+};
+
+struct Appointment {
+    int patientId;
+    int doctorId;
+    char date[MAX_DATE_LEN];
+    struct Appointment *next;
+};
+
+struct MedicalRecord {
+    int patientId;
+    char diagnosis[100];
+    char treatment[100];
+    struct MedicalRecord *next;
+};
+
+struct Patient *patientHead = NULL;
+struct Doctor *doctorHead = NULL;
+
+struct Appointment *appointmentFront = NULL;
+struct Appointment *appointmentRear = NULL;
+
+struct MedicalRecord *medicalRecordTop = NULL;
+
+void addPatient(int id, char *name, int age, char *gender) {
+    struct Patient *newPatient = (struct Patient *)malloc(sizeof(struct Patient));
+    newPatient->id = id;
+    strcpy(newPatient->name, name);
+    newPatient->age = age;
+    strcpy(newPatient->gender, gender);
+    newPatient->next = patientHead;
+    patientHead = newPatient;
+    printf("Patient added successfully.\n");
+}
+
+void displayPatients() {
+    struct Patient *temp = patientHead;
+    if (!temp) {
+        printf("No patients found.\n");
+        return;
+    }
+    printf("Patient List:\n");
+    while (temp) {
+        printf("ID: %d, Name: %s, Age: %d, Gender: %s\n", temp->id, temp->name, temp->age, temp->gender);
+        temp = temp->next;
+    }
+}
+
+void addDoctor(int id, char *name, char *specialization) {
+    struct Doctor *newDoctor = (struct Doctor *)malloc(sizeof(struct Doctor));
+    newDoctor->id = id;
+    strcpy(newDoctor->name, name);
+    strcpy(newDoctor->specialization, specialization);
+    newDoctor->next = doctorHead;
+    doctorHead = newDoctor;
+    printf("Doctor added successfully.\n");
+}
+
+void displayDoctors() {
+    struct Doctor *temp = doctorHead;
+    if (!temp) {
+        printf("No doctors found.\n");
+        return;
+    }
+    printf("Doctor List:\n");
+    while (temp) {
+        printf("ID: %d, Name: %s, Specialization: %s\n", temp->id, temp->name, temp->specialization);
+        temp = temp->next;
+    }
+}
+
+void scheduleAppointment(int patientId, int doctorId, char *date) {
+    struct Appointment *newAppointment = (struct Appointment *)malloc(sizeof(struct Appointment));
+    newAppointment->patientId = patientId;
+    newAppointment->doctorId = doctorId;
+    strcpy(newAppointment->date, date);
+    newAppointment->next = NULL;
+
+    if (appointmentRear == NULL) {
+        appointmentFront = appointmentRear = newAppointment;
+    } else {
+        appointmentRear->next = newAppointment;
+        appointmentRear = newAppointment;
+    }
+    printf("Appointment scheduled successfully.\n");
+}
+
+void displayAppointments() {
+    struct Appointment *temp = appointmentFront;
+    if (!temp) {
+        printf("No appointments found.\n");
+        return;
+    }
+    printf("Appointment List:\n");
+    while (temp) {
+        printf("Patient ID: %d, Doctor ID: %d, Date: %s\n", temp->patientId, temp->doctorId, temp->date);
+        temp = temp->next;
+    }
+}
+
+void processAppointment() {
+    if (appointmentFront == NULL) {
+        printf("No appointments to process.\n");
+        return;
+    }
+    struct Appointment *temp = appointmentFront;
+    printf("Processing Appointment - Patient ID: %d, Doctor ID: %d, Date: %s\n", temp->patientId, temp->doctorId, temp->date);
+    appointmentFront = appointmentFront->next;
+    if (appointmentFront == NULL) {
+        appointmentRear = NULL;
+    }
+    free(temp);
+}
+
+void addMedicalRecord(int patientId, char *diagnosis, char *treatment) {
+    struct MedicalRecord *newRecord = (struct MedicalRecord *)malloc(sizeof(struct MedicalRecord));
+    newRecord->patientId = patientId;
+    strcpy(newRecord->diagnosis, diagnosis);
+    strcpy(newRecord->treatment, treatment);
+    newRecord->next = medicalRecordTop;
+    medicalRecordTop = newRecord;
+    printf("Medical record added successfully.\n");
+}
+
+void displayLatestRecord() {
+    if (medicalRecordTop == NULL) {
+        printf("No medical records found.\n");
+        return;
+    }
+    printf("Latest Medical Record - Patient ID: %d, Diagnosis: %s, Treatment: %s\n", 
+           medicalRecordTop->patientId, medicalRecordTop->diagnosis, medicalRecordTop->treatment);
+}
+
+void displayAllRecords(int patientId) {
+    struct MedicalRecord *temp = medicalRecordTop;
+    int found = 0;
+    printf("Medical Records for Patient ID %d:\n", patientId);
+    while (temp != NULL) {
+        if (temp->patientId == patientId) {
+            printf("Diagnosis: %s, Treatment: %s\n", temp->diagnosis, temp->treatment);
+            found = 1;
+        }
+        temp = temp->next;
+    }
+    if (!found) {
+        printf("No records found for this patient.\n");
+    }
+}
+
+int main() {
+    int choice, id, age, patientId, doctorId;
+    char name[MAX_NAME_LEN], gender[10], specialization[30], date[MAX_DATE_LEN], diagnosis[100], treatment[100];
+
+    while (1) {
+        printf("\nHospital Management System\n");
+        printf("1. Add Patient\n");
+        printf("2. Display Patients\n");
+        printf("3. Add Doctor\n");
+        printf("4. Display Doctors\n");
+        printf("5. Schedule Appointment\n");
+        printf("6. Display Appointments\n");
+        printf("7. Process Appointment\n");
+        printf("8. Add Medical Record\n");
+        printf("9. Display Latest Medical Record\n");
+        printf("10. Display All Records for Patient\n");
+        printf("11. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter Patient ID: ");
+                scanf("%d", &id);
+                getchar(); 
+                printf("Enter Patient Name: ");
+                fgets(name, MAX_NAME_LEN, stdin);
+                name[strcspn(name, "\n")] = '\0';  
+                printf("Enter Patient Age: ");
+                scanf("%d", &age);
+                printf("Enter Patient Gender: ");
+                scanf("%s", gender);
+                addPatient(id, name, age, gender);
+                break;
+            case 2:
+                displayPatients();
+                break;
+            case 3:
+                printf("Enter Doctor ID: ");
+                scanf("%d", &id);
+                getchar();  
+                printf("Enter Doctor Name: ");
+                fgets(name, MAX_NAME_LEN, stdin);
+                name[strcspn(name, "\n")] = '\0';  
+                printf("Enter Specialization: ");
+                fgets(specialization, 30, stdin);
+                specialization[strcspn(specialization, "\n")] = '\0';  
+                addDoctor(id, name, specialization);
+                break;
+            case 4:
+                displayDoctors();
+                break;
+            case 5:
+                printf("Enter Patient ID: ");
+                scanf("%d", &patientId);
+                printf("Enter Doctor ID: ");
+                scanf("%d", &doctorId);
+                printf("Enter Appointment Date (DD/MM/YYYY): ");
+                scanf("%s", date);
+                scheduleAppointment(patientId, doctorId, date);
+                break;
+            case 6:
+                displayAppointments();
+                break;
+            case 7:
+                processAppointment();
+                break;
+            case 8:
+                printf("Enter Patient ID: ");
+                scanf("%d", &patientId);
+                getchar();  
+                printf("Enter Diagnosis: ");
+                fgets(diagnosis, 100, stdin);
+                diagnosis[strcspn(diagnosis, "\n")] = '\0';  
+                printf("Enter Treatment: ");
+                fgets(treatment, 100, stdin);
+                treatment[strcspn(treatment, "\n")] = '\0'; 
+                addMedicalRecord(patientId, diagnosis, treatment);
+                break;
+            case 9:
+                displayLatestRecord();
+                break;
+            case 10:
+                printf("Enter Patient ID: ");
+                scanf("%d", &patientId);
+                displayAllRecords(patientId);
+                break;
+            case 11:
+                printf("Exiting system.\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+    return 0;
+}
